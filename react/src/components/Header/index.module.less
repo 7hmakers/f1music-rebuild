@@ -2,12 +2,30 @@
   position: fixed;
   overflow: visible;
   top: 0;
+  left: 0;
+  box-sizing: border-box;
   height: 64px;
   width: 100%;
   padding: 0;
   z-index: 10;
   color: #fff;
   background: #1677ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: padding-left 250ms ease;
+}
+
+@media (min-width: 501px) and (max-width: 768px) {
+  .header.withSidebar:global(.ant-layout-header) {
+    padding-left: 256px;
+  }
+}
+
+@media (min-width: 769px) {
+  .header.withSidebar:global(.ant-layout-header) {
+    padding-left: 300px;
+  }
 }
 
 @media (max-width: 500px) {
@@ -16,8 +34,24 @@
   }
 }
 
+.left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
 .title {
   font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user {
+  flex-shrink: 0;
+  padding: 0 24px;
+  font-size: 15px;
+  white-space: nowrap;
 }
 
 .trigger {

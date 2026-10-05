@@ -2,6 +2,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button, Form, Input, message } from "antd";
 import {
   ArrowLeftOutlined,
+  IdcardOutlined,
   LockOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -46,47 +47,46 @@ const Login = () => {
           </div>
           <Form onFinish={handleSubmit}>
             <FormItem
+              name="name"
+              validateTrigger={["onChange", "onBlur"]}
+              rules={[{ required: true, message: "请输入姓名" }]}
+            >
+              <Input
+                placeholder="姓名"
+                prefix={<UserOutlined className={styles.inputIcon} />}
+              />
+            </FormItem>
+            <FormItem
               name="stuId"
               validateTrigger={["onChange", "onBlur"]}
               rules={[
                 { required: true, message: "请输入学号" },
                 {
-                  min: 10,
-                  message: "学号应为10或11位",
-                  validateTrigger: "onBlur",
-                },
-                {
-                  max: 11,
-                  message: "学号应为10或11位",
+                  len: 11,
+                  message: "学号应为11位",
                   validateTrigger: "onBlur",
                 },
               ]}
             >
               <Input
                 placeholder="学号"
-                prefix={<UserOutlined className={styles.inputIcon} />}
+                prefix={<IdcardOutlined className={styles.inputIcon} />}
               />
             </FormItem>
             <FormItem
               name="password"
               rules={[
                 { required: true, message: "请输入密码" },
-                ({ getFieldValue }) => ({
-                  validator(rule, value) {
-                    if (!value || getFieldValue("password") !== "123456") {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(
-                      new Error(
-                        "为保证投票质量禁止使用校网初始密码登录,请更改密码"
-                      )
-                    );
-                  },
-                }),
+                { pattern: /^\d{6}$/, message: "密码应为6位数字" },
+                {
+                  pattern: /^(?!123456$).*$/,
+                  message: "为保证投票质量禁止使用初始密码登录,请更改密码",
+                },
               ]}
             >
               <Input.Password
-                placeholder="校园网密码"
+                placeholder="一卡通密码（6位数字）"
+                maxLength={6}
                 prefix={<LockOutlined className={styles.inputIcon} />}
               />
             </FormItem>

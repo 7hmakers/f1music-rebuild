@@ -8,14 +8,18 @@ import {
   HomeOutlined,
   PlayCircleOutlined,
   ProfileOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getUser } from "hooks/useUser";
 
 import styles from "../Sidebar/index.module.less";
 
 const Sidebar = ({ collapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const user = getUser();
+  const isAdmin = (user?.permission ?? 0) >= 20;
 
   const sidebarClass = classnames({
     [styles.sidebar]: true,
@@ -37,6 +41,7 @@ const Sidebar = ({ collapsed }) => {
     { key: "/reports", icon: <ExceptionOutlined />, label: "反馈" },
     { key: "/rank", icon: <ProfileOutlined />, label: "投票结果" },
     { key: "/statistics", icon: <BarChartOutlined />, label: "数据统计" },
+    isAdmin && { key: "/admins", icon: <TeamOutlined />, label: "管理员" },
     { key: "back", icon: <ArrowLeftOutlined />, label: "返回前台" },
   ];
 

@@ -28,8 +28,12 @@ RUN pnpm build
 # Backend dependency builder for production
 FROM php:8.2-apache as build
 
-RUN sed -i s/deb.debian.org/mirrors.aliyun.com/g /etc/apt/sources.list && \
-    sed -i s/security.debian.org/mirrors.aliyun.com/g /etc/apt/sources.list && \
+RUN set -eux; \
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources; do \
+        if [ -f "$f" ]; then \
+            sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' "$f"; \
+        fi; \
+    done; \
     apt-get update
 
 # Required for composer
@@ -40,14 +44,18 @@ WORKDIR /app
 COPY . .
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction
+RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=ext-gmp
 
 
 # Backend dependency builder for development
 FROM php:8.2-apache as build-dev
 
-RUN sed -i s/deb.debian.org/mirrors.aliyun.com/g /etc/apt/sources.list && \
-    sed -i s/security.debian.org/mirrors.aliyun.com/g /etc/apt/sources.list && \
+RUN set -eux; \
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources; do \
+        if [ -f "$f" ]; then \
+            sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' "$f"; \
+        fi; \
+    done; \
     apt-get update
 
 # Required for composer
@@ -58,13 +66,22 @@ WORKDIR /app
 COPY . .
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN composer install --prefer-dist --no-interaction
+RUN composer install --prefer-dist --no-interaction --ignore-platform-req=ext-gmp
 
 
 # Application builder for development
 FROM php:8.2-apache as dev
 
-RUN docker-php-ext-install bcmath pdo_mysql
+RUN set -eux; \
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources; do \
+        if [ -f "$f" ]; then \
+            sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' "$f"; \
+        fi; \
+    done; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends libgmp-dev; \
+    docker-php-ext-install bcmath pdo_mysql gmp; \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
 
@@ -81,7 +98,16 @@ RUN a2enmod rewrite && \
 # Application builder for production
 FROM php:8.2-apache as production
 
-RUN docker-php-ext-install bcmath pdo_mysql
+RUN set -eux; \
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources; do \
+        if [ -f "$f" ]; then \
+            sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' "$f"; \
+        fi; \
+    done; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends libgmp-dev; \
+    docker-php-ext-install bcmath pdo_mysql gmp; \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
 

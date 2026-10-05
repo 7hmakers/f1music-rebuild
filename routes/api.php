@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MusicController;
 use App\Http\Controllers\ReportController;
@@ -89,6 +90,14 @@ Route::middleware('admin')->withoutMiddleware('throttle:api')->group(function ()
                         Route::get('/statistics', 'statistics');
                     }
             );
+        }
+    );
+
+    Route::middleware('can:admin')->controller(AdminController::class)->prefix('/admins')->group(
+        function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::delete('/', 'destroy');
         }
     );
 });

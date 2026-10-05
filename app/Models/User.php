@@ -42,6 +42,8 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     protected $fillable = [
         'id',
+        'name',
+        'permission',
     ];
 
     /**

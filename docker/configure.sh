@@ -9,6 +9,7 @@ mkdir -p storage/app/uploads
 mkdir -p storage/framework/cache/data
 mkdir -p storage/framework/sessions
 mkdir -p storage/framework/views
+mkdir -p storage/logs
 chown -R www-data:www-data storage
 
 # Cache routes and templates

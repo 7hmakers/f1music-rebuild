@@ -15,6 +15,7 @@
         "laravel/framework": "^10.9.0",
         "laravel/sanctum": "^3.2.5",
         "laravel/tinker": "^2.8.1",
+        "lpilp/guomi": "^2.0",
         "metowolf/meting": "^1.5.11"
     },
     "require-dev": {

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Common\Permission;
 use App\Models\User;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -21,10 +22,10 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('admin', function (User $user) {
-            return in_array($user->id, config('music.admin'));
+            return ($user->permission ?? Permission::User->value) >= Permission::Admin->value;
         });
         Gate::define('censor', function (User $user) {
-            return in_array($user->id, config('music.censor'));
+            return ($user->permission ?? Permission::User->value) >= Permission::Censor->value;
         });
     }
 }

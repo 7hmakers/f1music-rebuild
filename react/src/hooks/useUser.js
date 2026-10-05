@@ -18,7 +18,7 @@ const decodeCookie = (value) => {
     return {};
   }
   try {
-    const json = atob(value.replace(/%3D$/, ""));
+    const json = atob(decodeURIComponent(value));
     return JSON.parse(json);
   } catch (e) {
     console.log(e);
@@ -26,7 +26,7 @@ const decodeCookie = (value) => {
   }
 };
 
-const getUser = () => {
+export const getUser = () => {
   const user = getCookie("f1music_user");
   const auth = getCookie("f1music_auth");
   if (user || auth) {
@@ -50,8 +50,10 @@ const useUser = () => {
     clearCache();
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => mutate(), []);
+  // Only sync the cookie on mount. Do NOT clear the cache here: a fast-resolving
+  // SWR request on the same page (e.g. the admin list on localhost) could be
+  // wiped right after it loads, leaving the list stuck empty/loading.
+  useEffect(() => setUser(getUser()), [setUser]);
 
   return { user, mutate };
 };

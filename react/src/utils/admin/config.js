@@ -7,4 +7,5 @@ export const api = {
   reports: "/reports",
   rank: "/votes/rank",
   statistics: "/statistics",
+  admins: "/admins",
 };

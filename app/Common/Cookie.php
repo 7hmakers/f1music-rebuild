@@ -2,6 +2,7 @@
 
 namespace App\Common;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Cookie as CookieFacade;
 
 class Cookie
@@ -9,17 +10,12 @@ class Cookie
     protected static $name = 'f1music_user';
     protected static $minutes = 60 * 24 * 60;
 
-    public static function make(string $id)
+    public static function make(User $user)
     {
-        $permission = Permission::User;
-        if (in_array($id, config('music.admin'))) {
-            $permission = Permission::Admin;
-        } elseif (in_array($id, config('music.censor'))) {
-            $permission = Permission::Censor;
-        }
         $data = json_encode([
-            'id' => $id,
-            'permission' => $permission
+            'id' => $user->id,
+            'name' => $user->name,
+            'permission' => (int) ($user->permission ?? Permission::User->value)
         ]);
         return cookie(self::$name, base64_encode($data), self::$minutes, '/', httpOnly: false);
     }
