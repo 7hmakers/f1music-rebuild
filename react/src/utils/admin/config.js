@@ -8,4 +8,5 @@ export const api = {
   rank: "/votes/rank",
   statistics: "/statistics",
   admins: "/admins",
+  adminSearch: "/admins/search",
 };

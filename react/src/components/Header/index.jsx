@@ -26,7 +26,10 @@ const Header = ({ sidebarCollapsed, toggleSidebar }) => {
             onClick={toggleSidebar}
           />
         ) : (
-          <MenuFoldOutlined className={styles.trigger} onClick={toggleSidebar} />
+          <MenuFoldOutlined
+            className={styles.trigger}
+            onClick={toggleSidebar}
+          />
         )}
         <span className={styles.title}>{title}</span>
       </div>

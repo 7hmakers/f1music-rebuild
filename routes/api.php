@@ -96,6 +96,7 @@ Route::middleware('admin')->withoutMiddleware('throttle:api')->group(function ()
     Route::middleware('can:admin')->controller(AdminController::class)->prefix('/admins')->group(
         function () {
             Route::get('/', 'index');
+            Route::get('/search', 'search');
             Route::post('/', 'store');
             Route::delete('/', 'destroy');
         }

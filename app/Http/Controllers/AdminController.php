@@ -10,11 +10,34 @@ use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $admins = User::where('permission', '>=', Permission::Admin->value)
+        $size = (int) $request->input('size', 10);
+        $size = max(1, min($size, 50));
+        $page = max(1, (int) $request->input('page', 1));
+
+        $total = User::count();
+        $users = User::orderByDesc('permission')
+            ->orderBy('id')
+            ->forPage($page, $size)
             ->get(['id', 'name', 'permission']);
-        return $this->success('admins', $admins);
+
+        return $this->success('users', [
+            'list' => $users,
+            'total' => $total,
+            'page' => $page,
+            'size' => $size,
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $id = $request->input('id');
+        $user = null;
+        if (is_string($id) && strlen($id) === 11) {
+            $user = User::find($id, ['id', 'name', 'permission']);
+        }
+        return $this->success('user', $user);
     }
 
     public function store(Request $request)
