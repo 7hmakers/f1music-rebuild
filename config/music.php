@@ -4,7 +4,7 @@ return [
     'loginPublicKey' => '04c6b381c8dd86c4a6da68bc22e146a228389dc993a971d0e7d0d689b85775287ed06366740730d743b260db5f2f53c45ea6999b3e7f4ace0052944fa1b7e2f395',
     'loginSignSalt' => 'D3CAED7529EC4CD5D52EA7D31E26178A',
     'openUpload' => true,
-    'openVote' => true,
+    'openVote' => false,
     'openDownload' => false,
     'debugAuth' => env('MUSIC_DEBUG_AUTH', false),
     // 特殊测试账号,匹配学号/姓名/密码后跳过校园卡认证(仅用于测试)
