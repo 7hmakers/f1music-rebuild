@@ -23,6 +23,7 @@ import { timeFilters } from "config";
 import { dateSorter, ellipsis, renderDateTime } from "utils/utils";
 import InlineForm, { InlineFormRow } from "components/admin/InlineForm";
 import Title from "hooks/useTitle";
+import { getUser } from "hooks/useUser";
 import { useSongs } from "services/admin/songs";
 
 import { Audio, TimeSelector } from "components";
@@ -45,6 +46,8 @@ const colors = [
 const Songs = ({ isTrashed = false }) => {
   const { save, trash, restore, del, ...songs } = useSongs(isTrashed);
   const list = songs.data ?? [];
+  const user = getUser();
+  const isAdmin = (user?.permission ?? 0) >= 20;
 
   const [form] = Form.useForm();
   const searchInputRef = useRef();
@@ -231,15 +234,17 @@ const Songs = ({ isTrashed = false }) => {
                   >
                     恢复
                   </Button>
-                  <Button
-                    danger
-                    type="primary"
-                    icon={<DeleteOutlined />}
-                    loading={del.isMutating}
-                    onClick={() => handleDelete([row.id], true)}
-                  >
-                    彻底删除
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      danger
+                      type="primary"
+                      icon={<DeleteOutlined />}
+                      loading={del.isMutating}
+                      onClick={() => handleDelete([row.id], true)}
+                    >
+                      彻底删除
+                    </Button>
+                  )}
                 </Space>
               ) : (
                 <Button
@@ -369,15 +374,17 @@ const Songs = ({ isTrashed = false }) => {
           >
             恢复所选
           </Button>
-          <Button
-            danger
-            type="primary"
-            loading={del.isMutating}
-            disabled={selectedRowKeys.length === 0}
-            onClick={() => handleBatchDelete(true)}
-          >
-            彻底删除所选
-          </Button>
+          {isAdmin && (
+            <Button
+              danger
+              type="primary"
+              loading={del.isMutating}
+              disabled={selectedRowKeys.length === 0}
+              onClick={() => handleBatchDelete(true)}
+            >
+              彻底删除所选
+            </Button>
+          )}
         </Space>
       ) : (
         <Button

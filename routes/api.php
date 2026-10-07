@@ -82,14 +82,11 @@ Route::middleware('admin')->withoutMiddleware('throttle:api')->group(function ()
                 Route::delete('/', 'deleteReports');
             });
 
-            Route::middleware('can:admin')->group(
-                function () {
-                        Route::delete('/songs', 'deleteSongs');
-                        Route::get('/votes/rank', 'getRank');
-                        Route::get('/votes/analyze', 'analyze');
-                        Route::get('/statistics', 'statistics');
-                    }
-            );
+            Route::get('/votes/rank', 'getRank');
+            Route::get('/votes/analyze', 'analyze');
+            Route::get('/statistics', 'statistics');
+
+            Route::middleware('can:admin')->delete('/songs', 'deleteSongs');
         }
     );
 
