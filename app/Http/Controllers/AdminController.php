@@ -55,7 +55,7 @@ class AdminController extends Controller
         if ($request->filled('name')) {
             $user->name = $request->input('name');
         }
-        $user->permission = Permission::Admin->value;
+        $user->permission = Permission::Censor->value;
         $user->save();
 
         return $this->success('admin', $user->only(['id', 'name', 'permission']));
@@ -78,10 +78,11 @@ class AdminController extends Controller
         if (empty($user)) {
             return $this->error('用户不存在');
         }
-        if ($user->permission < Permission::Admin->value) {
+        if ($user->permission < Permission::Censor->value) {
             return $this->error('该用户不是管理员');
         }
-        if (User::where('permission', '>=', Permission::Admin->value)->count() <= 1) {
+        if ($user->permission >= Permission::Admin->value
+            && User::where('permission', '>=', Permission::Admin->value)->count() <= 1) {
             return $this->error('至少需要保留一名管理员');
         }
         $user->permission = Permission::User->value;

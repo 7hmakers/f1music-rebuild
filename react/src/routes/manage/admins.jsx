@@ -20,10 +20,10 @@ import { useUsers } from "services/admin/admins";
 
 const renderRole = (permission) => {
   if (permission >= 20) {
-    return <Tag color="blue">管理员</Tag>;
+    return <Tag color="blue">admin</Tag>;
   }
   if (permission >= 10) {
-    return <Tag color="green">审核员</Tag>;
+    return <Tag color="green">管理员</Tag>;
   }
   return <Tag>普通用户</Tag>;
 };
@@ -47,7 +47,7 @@ const Admins = () => {
         const found = res.user;
         if (!found) {
           setResult({ status: "empty", id });
-        } else if (found.permission >= 20) {
+        } else if (found.permission >= 10) {
           setResult({ status: "already", user: found });
         } else {
           setResult({ status: "found", user: found });
@@ -89,7 +89,7 @@ const Admins = () => {
       title: "操作",
       width: "140px",
       render: (_, row) => {
-        if (row.permission >= 20) {
+        if (row.permission >= 10) {
           if (user?.id === row.id) {
             return <span style={{ color: "#999" }}>当前账号</span>;
           }
