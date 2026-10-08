@@ -9,4 +9,5 @@ export const api = {
   statistics: "/statistics",
   admins: "/admins",
   adminSearch: "/admins/search",
+  debug: "/debug",
 };

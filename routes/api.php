@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DebugController;
 use App\Http\Controllers\MusicController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UploadController;
@@ -98,4 +99,6 @@ Route::middleware('admin')->withoutMiddleware('throttle:api')->group(function ()
             Route::delete('/', 'destroy');
         }
     );
+
+    Route::middleware('can:admin')->get('/debug', [DebugController::class, 'index']);
 });
