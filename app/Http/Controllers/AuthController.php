@@ -18,8 +18,7 @@ class AuthController extends Controller
         'stuId.required' => '请输入学号',
         'stuId.size' => '学号应为11位',
         'password.required' => '请输入密码',
-        'password.regex' => '密码应为6位数字',
-        'password.not_in' => '为保证投票质量禁止使用初始密码登录,请更改密码'
+        'password.regex' => '密码应为6位数字'
     ];
 
     public function login(Request $request)
@@ -28,7 +27,7 @@ class AuthController extends Controller
             'name' => 'required | string',
             // 证件号即学号,长度为11位
             'stuId' => 'required | string | size:11',
-            'password' => ['required', 'string', 'regex:/^[0-9]{6}$/', 'not_in:123456']
+            'password' => ['required', 'string', 'regex:/^[0-9]{6}$/']
         ], self::$messages)->validate();
 
         $id = $request->input('stuId');

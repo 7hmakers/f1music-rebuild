@@ -78,10 +78,6 @@ const Login = () => {
               rules={[
                 { required: true, message: "请输入密码" },
                 { pattern: /^\d{6}$/, message: "密码应为6位数字" },
-                {
-                  pattern: /^(?!123456$).*$/,
-                  message: "为保证投票质量禁止使用初始密码登录,请更改密码",
-                },
               ]}
             >
               <Input.Password
