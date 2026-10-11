@@ -4,14 +4,6 @@ import { ArrowRightOutlined } from "@ant-design/icons";
 const VoteDescription = () => (
   <>
     <p>
-      为保证投票质量，目前禁止使用校园网默认密码(即123456)登录投票，使用默认密码的同学请先登录
-      <a href="http://old.fzyz.net/" target="_blank" rel="noopener noreferrer">
-        福州一中官网
-      </a>
-      修改密码(官方推荐浏览器: Internet Explorer)。
-    </p>
-
-    <p>
       投票时请先选择一个时段，待页面加载完毕后从下方播放列表中点击一首歌曲试听，歌曲播放总时长达15秒后显示评分栏，总时长达30秒后允许提交投票，请综合您的感受及歌曲所在时段的音乐要求进行评价，选择“1星
       - 非常不合适”、“2星 - 不合适”、“3星 - 中立”、“4星 - 合适”或“5星 -
       非常合适”，然后点击提交按钮进行提交。
