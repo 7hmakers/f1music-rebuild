@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Common\Schedule;
 use App\Models\Song;
 use App\Models\Vote;
 use App\Models\Order;
@@ -24,7 +25,7 @@ class VoteController extends Controller
 
     public function vote(Request $request)
     {
-        if (!config('music.openVote')) {
+        if (!config('music.openVote') || !Schedule::isOpen('vote')) {
             return $this->error('投票未开放', 2);
         }
         Validator::make($request->all(), [
@@ -46,7 +47,7 @@ class VoteController extends Controller
 
     public function getSongs(Request $request)
     {
-        if (!config('music.openVote')) {
+        if (!config('music.openVote') || !Schedule::isOpen('vote')) {
             return $this->error('投票未开放', 2);
         }
         Validator::make($request->all(), [

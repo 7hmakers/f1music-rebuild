@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Common\Schedule;
 use App\Models\File;
 use App\Models\Song;
 use Illuminate\Http\Request;
@@ -43,7 +44,7 @@ class UploadController extends Controller
 
     public function upload(Request $request)
     {
-        if (!config('music.openUpload')) {
+        if (!config('music.openUpload') || !Schedule::isOpen('upload')) {
             return $this->error(self::errorMsg['stop_upload'], 2);
         } elseif (Song::withTrashed()->where('user_id', Auth::id())->count() >= 12) {
             return $this->error(self::errorMsg['max_upload_num']);
@@ -83,7 +84,7 @@ class UploadController extends Controller
 
     public function uploads()
     {
-        if (!config('music.openUpload')) {
+        if (!config('music.openUpload') || !Schedule::isOpen('upload')) {
             return $this->error(self::errorMsg['stop_upload'], 2);
         }
         $songs = Song::withTrashed()->where('user_id', Auth::id())->get();
