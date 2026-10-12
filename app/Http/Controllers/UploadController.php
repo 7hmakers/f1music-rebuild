@@ -147,7 +147,7 @@ class UploadController extends Controller
             return $this->error($validator->errors()->first(), 2);
         }
 
-        $song = Song::where('id', $request->input('id'))->where('user_id', Auth::id())->first();
+        $song = Song::withTrashed()->where('id', $request->input('id'))->where('user_id', Auth::id())->first();
         if (empty($song)) {
             return $this->error('曲目不存在或无权操作', 2);
         }
