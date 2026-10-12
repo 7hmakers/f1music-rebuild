@@ -27,13 +27,13 @@ class ManageController extends Controller
     }
     public function getSongs()
     {
-        $songs = Song::with('file')->withCount('reports')->get();
+        $songs = Song::with('file', 'user')->withCount('reports')->get();
         return $this->success('songs', $songs);
     }
 
     public function viewSong($id)
     {
-        $song = Song::with('reports', 'file')->where('id', $id)->first();
+        $song = Song::with('reports', 'file', 'user')->where('id', $id)->first();
         return $this->success('song', $song);
     }
 
@@ -79,7 +79,7 @@ class ManageController extends Controller
 
     public function getTrashedSongs()
     {
-        $songs = Song::onlyTrashed()->with('file')->withCount('reports')->get();
+        $songs = Song::onlyTrashed()->with('file', 'user')->withCount('reports')->get();
         return $this->success('songs', $songs);
     }
 

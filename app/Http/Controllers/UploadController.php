@@ -89,9 +89,72 @@ class UploadController extends Controller
         }
         $songs = Song::withTrashed()->where('user_id', Auth::id())->get();
         $songs = $songs->map(function ($song) {
-            return $song->only(['playtime', 'name', 'origin']);
+            return $song->only(['id', 'playtime', 'name', 'origin']);
         });
         return $this->success('songs', $songs);
+    }
+
+    public function edit(Request $request)
+    {
+        if (!config('music.openUpload') || !Schedule::isOpen('upload')) {
+            return $this->error(self::errorMsg['stop_upload'], 2);
+        }
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'numeric', 'integer', 'min:0'],
+            'time' => [
+                'required',
+                Rule::in(['1', '2', '3', '4', '5', '6'])
+            ],
+            'name' => 'required | string | max: 100',
+            'origin' => 'nullable | string | max: 200'
+        ], self::messages);
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first(), 2);
+        }
+
+        $song = Song::where('id', $request->input('id'))->where('user_id', Auth::id())->first();
+        if (empty($song)) {
+            return $this->error('曲目不存在或无权修改', 2);
+        }
+        $time = $request->input('time');
+        if ($time != $song->playtime) {
+            $exists = Song::withTrashed()->ofTime($time)->where('file_id', $song->file_id)
+                ->where('id', '!=', $song->id)->exists();
+            if ($exists) {
+                return $this->error('目标时段已存在相同曲目', 2);
+            }
+            if ($time == '3' && $song->file->duration > 5 * 60) {
+                return $this->error(self::errorMsg['time_too_long_3'], 2);
+            }
+        }
+        $song->name = $request->input('name');
+        $song->origin = $request->input('origin');
+        $song->playtime = $time;
+        $song->save();
+        Log::info('Song ' . $song->id . ' edited by ' . Auth::id());
+        return $this->success();
+    }
+
+    public function withdraw(Request $request)
+    {
+        if (!config('music.openUpload') || !Schedule::isOpen('upload')) {
+            return $this->error(self::errorMsg['stop_upload'], 2);
+        }
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'numeric', 'integer', 'min:0']
+        ], ['id.required' => '参数错误,请刷新页面']);
+        if ($validator->fails()) {
+            return $this->error($validator->errors()->first(), 2);
+        }
+
+        $song = Song::where('id', $request->input('id'))->where('user_id', Auth::id())->first();
+        if (empty($song)) {
+            return $this->error('曲目不存在或无权操作', 2);
+        }
+        // SongDeleted 事件会在该文件无其它引用时顺带清理文件
+        $song->forceDelete();
+        Log::info('Song ' . $request->input('id') . ' withdrawn by ' . Auth::id());
+        return $this->success();
     }
 
     private static function getFileFromRequest(Request $request)

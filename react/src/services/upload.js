@@ -1,5 +1,5 @@
 import { api } from "config";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import useSWRMutation from "swr/mutation";
 import { produce } from "immer";
 
@@ -57,3 +57,25 @@ export const useMyUploads = () =>
       method: "get",
     }).then((data) => data.songs)
   );
+
+export const useEditUpload = () => {
+  const { mutate } = useSWRConfig();
+  return useSWRMutation("/api/uploads/edit", (_, { arg }) =>
+    request({
+      url: uploads,
+      method: "put",
+      data: arg,
+    }).then(() => mutate("/api/uploads"))
+  );
+};
+
+export const useWithdrawUpload = () => {
+  const { mutate } = useSWRConfig();
+  return useSWRMutation("/api/uploads/withdraw", (_, { arg: id }) =>
+    request({
+      url: uploads,
+      method: "delete",
+      data: { id },
+    }).then(() => mutate("/api/uploads"))
+  );
+};

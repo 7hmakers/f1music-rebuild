@@ -26,6 +26,11 @@ class Song extends Model
         return $this->belongsTo(File::class);
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function votes(): HasMany
     {
         return $this->hasMany(Vote::class);

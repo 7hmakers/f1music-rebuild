@@ -62,7 +62,7 @@ const Songs = ({ isTrashed = false }) => {
     confirm();
   };
 
-  const getColumnSearchProps = (dataIndex) => ({
+  const getColumnSearchProps = (dataIndex, valueGetter) => ({
     filterDropdown: ({
       setSelectedKeys,
       selectedKeys,
@@ -103,8 +103,10 @@ const Songs = ({ isTrashed = false }) => {
     filterIcon: (filtered) => (
       <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
     ),
-    onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilter: (value, record) => {
+      const raw = valueGetter ? valueGetter(record) : record[dataIndex];
+      return (raw ?? "").toString().toLowerCase().includes(value.toLowerCase());
+    },
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInputRef.current.select());
@@ -180,6 +182,10 @@ const Songs = ({ isTrashed = false }) => {
 
     return (
       <InlineForm>
+        <InlineFormRow>
+          <FormItem label="上传者学号">{row.user?.id}</FormItem>
+          <FormItem label="上传者姓名">{row.user?.name}</FormItem>
+        </InlineFormRow>
         <InlineFormRow>
           <FormItem label="时段">{row.playtime}</FormItem>
           <FormItem label="曲名">{row.name}</FormItem>
@@ -305,6 +311,18 @@ const Songs = ({ isTrashed = false }) => {
           <span style={{ lineHeight: 1.5715 }}>{text}</span>
         </Badge>
       ),
+    },
+    {
+      dataIndex: ["user", "id"],
+      title: "学号",
+      width: "120px",
+      ...getColumnSearchProps("user.id", (record) => record.user?.id),
+    },
+    {
+      dataIndex: ["user", "name"],
+      title: "姓名",
+      width: "90px",
+      ...getColumnSearchProps("user.name", (record) => record.user?.name),
     },
     {
       dataIndex: "origin",

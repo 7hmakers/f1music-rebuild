@@ -42,6 +42,8 @@ Route::middleware('auth')->group(function () {
         function () {
             Route::get('/uploads', 'uploads')->middleware('throttle:40');
             Route::post('/upload', 'upload')->middleware('throttle:30');
+            Route::put('/uploads', 'edit')->middleware('throttle:30');
+            Route::delete('/uploads', 'withdraw')->middleware('throttle:30');
         }
     );
     Route::controller(VoteController::class)->prefix("/vote")->group(
