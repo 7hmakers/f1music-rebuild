@@ -183,7 +183,6 @@ const Songs = ({ isTrashed = false }) => {
     return (
       <InlineForm>
         <InlineFormRow>
-          <FormItem label="上传者学号">{row.user?.id}</FormItem>
           <FormItem label="上传者姓名">{row.user?.name}</FormItem>
         </InlineFormRow>
         <InlineFormRow>
@@ -311,12 +310,6 @@ const Songs = ({ isTrashed = false }) => {
           <span style={{ lineHeight: 1.5715 }}>{text}</span>
         </Badge>
       ),
-    },
-    {
-      dataIndex: ["user", "id"],
-      title: "学号",
-      width: "120px",
-      ...getColumnSearchProps("user.id", (record) => record.user?.id),
     },
     {
       dataIndex: ["user", "name"],
