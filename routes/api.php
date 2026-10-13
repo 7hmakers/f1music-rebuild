@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\MusicController;
 use App\Http\Controllers\ReportController;
@@ -36,6 +37,7 @@ Route::get('/download/{id}', [
 
 Route::get('/music/playlist', [MusicController::class, 'playlist'])->middleware('throttle:30');
 Route::get('/status/{type}', [ManageController::class, 'getStatus'])->whereAlpha('type');
+Route::get('/content', [ContentController::class, 'index'])->middleware('throttle:40');
 
 Route::middleware('auth')->group(function () {
     Route::controller(UploadController::class)->group(
@@ -99,6 +101,13 @@ Route::middleware('admin')->withoutMiddleware('throttle:api')->group(function ()
             Route::get('/search', 'search');
             Route::post('/', 'store');
             Route::delete('/', 'destroy');
+        }
+    );
+
+    Route::middleware('can:admin')->controller(ContentController::class)->group(
+        function () {
+            Route::get('/content/source', 'source');
+            Route::put('/content', 'update');
         }
     );
 

@@ -4,6 +4,7 @@ import {
   ArrowLeftOutlined,
   BarChartOutlined,
   BugOutlined,
+  EditOutlined,
   ExceptionOutlined,
   FileOutlined,
   HomeOutlined,
@@ -43,6 +44,7 @@ const Sidebar = ({ collapsed }) => {
     { key: "/rank", icon: <ProfileOutlined />, label: "投票结果" },
     { key: "/statistics", icon: <BarChartOutlined />, label: "数据统计" },
     isAdmin && { key: "/admins", icon: <TeamOutlined />, label: "管理员" },
+    isAdmin && { key: "/content", icon: <EditOutlined />, label: "文本" },
     isAdmin && { key: "/debug", icon: <BugOutlined />, label: "调试" },
     { key: "back", icon: <ArrowLeftOutlined />, label: "返回前台" },
   ];

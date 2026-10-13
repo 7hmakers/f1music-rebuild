@@ -9,5 +9,7 @@ export const api = {
   statistics: "/statistics",
   admins: "/admins",
   adminSearch: "/admins/search",
+  content: "/content",
+  contentSource: "/content/source",
   debug: "/debug",
 };

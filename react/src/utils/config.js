@@ -1,5 +1,6 @@
 export const api = {
   status: "/status",
+  content: "/content",
   login: "/auth/login",
   logout: "/auth/logout",
   list: "/vote/list",
