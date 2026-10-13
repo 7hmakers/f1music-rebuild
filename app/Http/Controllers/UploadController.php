@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Common\NcmDecoder;
 use App\Common\Schedule;
 use App\Models\File;
 use App\Models\Song;
@@ -42,7 +43,7 @@ class UploadController extends Controller
         'file.file' => '上传的文件无效,请重新上传',
         'file.max' => '禁止上传超过20MB的文件',
         'file.min' => '为保证音频质量,请上传一个至少1MB的文件',
-        'file.mimetypes' => '不支持的文件格式,请上传常见的音频文件(mp3/m4a/aac/wav/flac/ogg等)'
+        'file.mimetypes' => '不支持的文件格式,请上传常见的音频文件(mp3/m4a/aac/wav/flac/ogg等)或网易云NCM文件'
     ];
 
     private const errorMsg = [
@@ -184,6 +185,18 @@ class UploadController extends Controller
             $file->name = $reqFile->getClientOriginalName();
             $file->url = $tmpDir . $file->name;
             $reqFile->move($tmpDir, $file->name); //先存储到临时目录以便验证
+            if (NcmDecoder::isNcm($file->url)) {
+                //NCM为加密容器,先解密还原出内部的mp3/flac,再交给后续流程统一处理
+                try {
+                    $decoded = NcmDecoder::decode($file->url, $tmpDir);
+                } catch (\Exception $e) {
+                    @unlink($file->url);
+                    throw $e;
+                }
+                @unlink($file->url);
+                $file->name = basename($decoded['path']);
+                $file->url = $decoded['path'];
+            }
         } else { //Cloud Music Upload
             $url = self::getMp3($request->input('id'));
             $file->cloudId = $request->input('id');

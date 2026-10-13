@@ -9,7 +9,7 @@ const UploadDescription = () => (
 
     <h3>硬性要求：</h3>
     <p>
-      支持 mp3、m4a、aac、wav、flac、ogg 等常见音频格式(非 mp3
+      支持 mp3、m4a、aac、wav、flac、ogg 等常见音频格式及网易云 NCM 文件(非 mp3
       格式会在上传时自动转换为
       mp3)，并请保证有一定质量。歌曲时长控制在2.5-6分钟(特别地，
       <strong>午出门铃声时长须在5分钟以内</strong>
