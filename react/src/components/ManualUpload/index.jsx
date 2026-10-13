@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Divider, Form, Input, Upload, message } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 import { useMyUploads } from "services/upload";
+import { useHints } from "services/content";
 
 import { TimeSelector } from "components";
 
@@ -9,6 +10,7 @@ const FormItem = Form.Item;
 
 const ManualUpload = () => {
   const myUploads = useMyUploads();
+  const { data: hints } = useHints();
 
   const [fileList, setFileList] = useState([]);
   const [form] = Form.useForm();
@@ -109,7 +111,7 @@ const ManualUpload = () => {
           maxLength={200}
         />
       </FormItem>
-      <Divider>请先填写以上信息再上传文件</Divider>
+      <Divider>{hints?.["hint.upload.divider"]}</Divider>
       <FormItem {...formItemLayout} label="上传文件">
         <Upload.Dragger
           with-credentials
@@ -124,11 +126,8 @@ const ManualUpload = () => {
           <p className="ant-upload-drag-icon">
             <InboxOutlined />
           </p>
-          <p className="ant-upload-text">将文件拖到此处，或点击上传</p>
-          <p className="ant-upload-hint">
-            支持 mp3/m4a/aac/wav/flac/ogg 等音频格式，以及网易云 NCM
-            文件（会自动解密并转换为 mp3），文件大小须介于1-20MB之间
-          </p>
+          <p className="ant-upload-text">{hints?.["hint.upload.drag"]}</p>
+          <p className="ant-upload-hint">{hints?.["hint.upload.tip"]}</p>
         </Upload.Dragger>
       </FormItem>
     </Form>

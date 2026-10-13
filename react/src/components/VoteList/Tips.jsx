@@ -1,17 +1,19 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
+import { useHints } from "services/content";
 
 import { BottomTips } from "components";
 
 const Tips = ({ progress, time }) => {
+  const { data: hints } = useHints();
   const [voted, total] = progress;
 
   if (voted < total) {
-    return (
-      <BottomTips>
-        本时段您已投 {voted} 首曲目，还有 {total - voted} 首未投票曲目
-      </BottomTips>
-    );
+    const tip = (hints?.["hint.vote.progress"] ?? "")
+      .replace("{voted}", voted)
+      .replace("{left}", total - voted);
+
+    return <BottomTips>{tip}</BottomTips>;
   }
 
   let rndTime;

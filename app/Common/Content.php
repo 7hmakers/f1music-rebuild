@@ -21,6 +21,16 @@ class Content
         'manage.notice' => '后台 · 审核须知',
     ];
 
+    // 纯文本的小提示,直接原样显示(不渲染 Markdown)
+    private const HINT_LABELS = [
+        'hint.upload.drag' => '上传 · 拖拽区文字',
+        'hint.upload.tip' => '上传 · 格式与大小提示',
+        'hint.upload.divider' => '上传 · 填写信息提示',
+        'hint.cloud.tip' => '网易云上传 · 底部提示',
+        'hint.search.placeholder' => '网易云上传 · 搜索框占位符',
+        'hint.vote.progress' => '投票 · 进度提示(可用 {voted} 和 {left})',
+    ];
+
     public static function keys(): array
     {
         return array_keys(self::LABELS);
@@ -31,6 +41,16 @@ class Content
         return self::LABELS;
     }
 
+    public static function hintKeys(): array
+    {
+        return array_keys(self::HINT_LABELS);
+    }
+
+    public static function hintLabels(): array
+    {
+        return self::HINT_LABELS;
+    }
+
     public static function dir(): string
     {
         return config_path('content');
@@ -39,6 +59,11 @@ class Content
     private static function path(string $key): string
     {
         return self::dir() . DIRECTORY_SEPARATOR . $key . '.md';
+    }
+
+    private static function hintPath(string $key): string
+    {
+        return self::dir() . DIRECTORY_SEPARATOR . $key . '.txt';
     }
 
     public static function defaults(): array
@@ -160,6 +185,18 @@ MD,
         ];
     }
 
+    public static function hintDefaults(): array
+    {
+        return [
+            'hint.upload.drag' => '将文件拖到此处，或点击上传',
+            'hint.upload.tip' => '支持 mp3/m4a/aac/wav/flac/ogg 等音频格式，以及网易云 NCM 文件（会自动解密并转换为 mp3），文件大小须介于1-20MB之间',
+            'hint.upload.divider' => '请先填写以上信息再上传文件',
+            'hint.cloud.tip' => '遇到了问题？试试手动上传吧',
+            'hint.search.placeholder' => '输入关键词或粘贴歌曲、专辑、歌单链接',
+            'hint.vote.progress' => '本时段您已投 {voted} 首曲目，还有 {left} 首未投票曲目',
+        ];
+    }
+
     /**
      * 合并默认值与文件内容，返回每个键对应的 Markdown 原文。
      */
@@ -176,6 +213,24 @@ MD,
             }
         }
         return $content;
+    }
+
+    /**
+     * 合并默认值与文件内容，返回每个提示对应的纯文本。
+     */
+    public static function allHints(): array
+    {
+        $hints = self::hintDefaults();
+        foreach (self::hintKeys() as $key) {
+            $path = self::hintPath($key);
+            if (is_file($path)) {
+                $value = @file_get_contents($path);
+                if ($value !== false) {
+                    $hints[$key] = $value;
+                }
+            }
+        }
+        return $hints;
     }
 
     /**
@@ -196,17 +251,30 @@ MD,
      */
     public static function put(array $values): void
     {
+        self::putFiles($values, self::LABELS, 'md');
+    }
+
+    /**
+     * 写入指定键的提示纯文本（仅接受已知键）。
+     */
+    public static function putHints(array $values): void
+    {
+        self::putFiles($values, self::HINT_LABELS, 'txt');
+    }
+
+    private static function putFiles(array $values, array $labels, string $ext): void
+    {
         $dir = self::dir();
         if (!is_dir($dir) && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
             throw new RuntimeException('无法创建内容目录 config/content');
         }
-        foreach ($values as $key => $markdown) {
-            if (!array_key_exists($key, self::LABELS) || !is_string($markdown)) {
+        foreach ($values as $key => $value) {
+            if (!array_key_exists($key, $labels) || !is_string($value)) {
                 continue;
             }
-            $path = self::path($key);
-            if (@file_put_contents($path, $markdown, LOCK_EX) === false) {
-                throw new RuntimeException('无法写入内容文件 ' . $key . '.md');
+            $path = $dir . DIRECTORY_SEPARATOR . $key . '.' . $ext;
+            if (@file_put_contents($path, $value, LOCK_EX) === false) {
+                throw new RuntimeException('无法写入内容文件 ' . $key . '.' . $ext);
             }
             @chmod($path, 0666);
         }
@@ -222,14 +290,20 @@ MD,
             @mkdir($dir, 0777, true);
         }
         $defaults = self::defaults();
+        $hints = self::hintDefaults();
         $created = [];
-        foreach (self::keys() as $key) {
+        foreach ($defaults as $key => $value) {
             $path = self::path($key);
-            if (!is_file($path)) {
-                if (@file_put_contents($path, $defaults[$key], LOCK_EX) !== false) {
-                    @chmod($path, 0666);
-                    $created[] = $key;
-                }
+            if (!is_file($path) && @file_put_contents($path, $value, LOCK_EX) !== false) {
+                @chmod($path, 0666);
+                $created[] = $key;
+            }
+        }
+        foreach ($hints as $key => $value) {
+            $path = self::hintPath($key);
+            if (!is_file($path) && @file_put_contents($path, $value, LOCK_EX) !== false) {
+                @chmod($path, 0666);
+                $created[] = $key;
             }
         }
         return $created;

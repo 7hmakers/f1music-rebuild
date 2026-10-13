@@ -38,6 +38,7 @@ Route::get('/download/{id}', [
 Route::get('/music/playlist', [MusicController::class, 'playlist'])->middleware('throttle:30');
 Route::get('/status/{type}', [ManageController::class, 'getStatus'])->whereAlpha('type');
 Route::get('/content', [ContentController::class, 'index'])->middleware('throttle:40');
+Route::get('/hints', [ContentController::class, 'hints'])->middleware('throttle:40');
 
 Route::middleware('auth')->group(function () {
     Route::controller(UploadController::class)->group(

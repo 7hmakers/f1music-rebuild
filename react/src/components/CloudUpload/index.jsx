@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { AutoComplete, Button, Form, Input, Modal, Table, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useMyUploads, useSearch, useUpload } from "services/upload";
+import { useHints } from "services/content";
 
 import { BottomTips, Player, TimeSelector } from "components";
 
@@ -22,6 +23,7 @@ const CloudUpload = () => {
 
   const upload = useUpload();
   const myUploads = useMyUploads();
+  const { data: hints } = useHints();
 
   const handleSearch = async (newKeyword) => {
     if (newKeyword) {
@@ -110,7 +112,7 @@ const CloudUpload = () => {
       <Search
         enterButton
         required
-        placeholder="输入关键词或粘贴歌曲、专辑、歌单链接"
+        placeholder={hints?.["hint.search.placeholder"]}
         style={{ marginBottom: "10px" }}
         loading={search.isValidating}
         onSearch={handleSearch}
@@ -170,7 +172,7 @@ const CloudUpload = () => {
         </Modal>
       )}
       {searchResult.length > 0 && (
-        <BottomTips>遇到了问题？试试手动上传吧</BottomTips>
+        <BottomTips>{hints?.["hint.cloud.tip"]}</BottomTips>
       )}
     </div>
   );
