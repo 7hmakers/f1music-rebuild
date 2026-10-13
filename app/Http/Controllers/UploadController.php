@@ -14,9 +14,23 @@ use Illuminate\Support\Facades\Validator;
 use getID3;
 use Metowolf\Meting;
 use getid3_writetags;
+use Symfony\Component\Process\Process;
 
 class UploadController extends Controller
 {
+    // 允许上传的音频格式(以内容识别的MIME为准),非mp3会被转码为mp3
+    private const audioMimetypes = 'audio/mpeg,audio/mp3,audio/mp4,video/mp4,audio/x-m4a,'
+        . 'audio/aac,audio/x-aac,audio/wav,audio/x-wav,audio/wave,audio/vnd.wave,'
+        . 'audio/flac,audio/x-flac,audio/ogg,application/ogg,audio/opus,audio/vorbis,'
+        . 'audio/x-ms-wma,audio/x-ms-wax,video/x-ms-asf,application/vnd.ms-asf,'
+        . 'audio/aiff,audio/x-aiff,audio/basic,application/octet-stream';
+
+    // 转码目标比特率(不低于原有的128kbps门槛)
+    private const transcodeBitrate = '192k';
+
+    // 非mp3源文件的最低比特率(阈值放宽以避免AAC等格式的误判,无损格式不受影响)
+    private const minSourceBitrate = 96000;
+
     private const messages = [
         'time.required' => '请选择时段',
         'time.in' => '参数错误,请重新选择时段',
@@ -28,7 +42,7 @@ class UploadController extends Controller
         'file.file' => '上传的文件无效,请重新上传',
         'file.max' => '禁止上传超过20MB的文件',
         'file.min' => '为保证音频质量,请上传一个至少1MB的文件',
-        'file.mimetypes' => '文件非mp3格式,请上传mp3格式的文件'
+        'file.mimetypes' => '不支持的文件格式,请上传常见的音频文件(mp3/m4a/aac/wav/flac/ogg等)'
     ];
 
     private const errorMsg = [
@@ -58,9 +72,9 @@ class UploadController extends Controller
             'name' => 'required | string | max: 100',
             'origin' => 'nullable | string | max: 200',
             'id' => ['required_without:file', 'numeric', 'integer', 'min:0'],
-            'file' => ['required_without:id', 'file', 'mimetypes:application/octet-stream,audio/mpeg', 'min: 1024', 'max: 20480']
-            //某些mp3文件的mimetype会被识别为application/octet-stream,此处临时放行,后面交由getID3验证
-            //mp3的MIMEType是audio/mpeg,要使用mimes得写mpga
+            'file' => ['required_without:id', 'file', 'mimetypes:' . self::audioMimetypes, 'min: 1024', 'max: 20480']
+            //部分文件的mimetype会被识别为application/octet-stream,此处放行,后面交由getID3与ffmpeg验证
+            //非mp3格式会在getFileFromRequest中统一转码为mp3
         ], self::messages)->validate();
 
         try {
@@ -170,7 +184,6 @@ class UploadController extends Controller
             $file->name = $reqFile->getClientOriginalName();
             $file->url = $tmpDir . $file->name;
             $reqFile->move($tmpDir, $file->name); //先存储到临时目录以便验证
-            $file->md5 = md5_file($file->url);
         } else { //Cloud Music Upload
             $url = self::getMp3($request->input('id'));
             $file->cloudId = $request->input('id');
@@ -179,11 +192,59 @@ class UploadController extends Controller
             }
             $pathInfo = pathinfo($url);
             $file->name = $pathInfo['basename'];
-            $file->md5 = $pathInfo['filename'];
             Storage::disk('tmp')->put($file->name, file_get_contents($url));
             $file->url = $tmpDir . $file->name;
         }
+        // 统一转换为mp3(非mp3格式在此转码),再按最终文件内容计算md5用于去重与存储
+        self::ensureMp3($file);
+        $file->md5 = md5_file($file->url);
         return $file;
+    }
+
+    // 确保临时文件为mp3,否则用ffmpeg转码;失败时清理临时文件并抛出异常
+    private static function ensureMp3($file)
+    {
+        $info = self::probeAudio($file->url);
+        $format = $info['format'] ?? null;
+
+        if ($format === 'mp3') { //已是mp3,无需处理
+            return;
+        }
+        try {
+            //非mp3文件保留音质门槛(无损格式比特率足够高,通常不会被拦截)
+            if ($info !== null && !empty($info['bitrate']) && $info['bitrate'] < self::minSourceBitrate) {
+                throw new \Exception(self::errorMsg['bitrate_too_low']);
+            }
+            self::transcodeToMp3($file);
+        } catch (\Exception $e) {
+            @unlink($file->url);
+            throw $e;
+        }
+    }
+
+    private static function transcodeToMp3($file)
+    {
+        $dir = dirname($file->url);
+        $output = $dir . DIRECTORY_SEPARATOR . uniqid('mp3_') . '.mp3';
+
+        $process = new Process([
+            'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
+            '-i', $file->url,
+            '-vn', '-map_metadata', '-1',
+            '-c:a', 'libmp3lame', '-b:a', self::transcodeBitrate,
+            $output,
+        ]);
+        $process->setTimeout(600);
+        $process->run();
+
+        if (!$process->isSuccessful() || !is_file($output) || filesize($output) === 0) {
+            @unlink($output);
+            Log::warning('Transcode failed: ' . $process->getErrorOutput());
+            throw new \Exception('文件不是有效的音频,或格式不受支持');
+        }
+        @unlink($file->url); //删除原始临时文件
+        $file->name = basename($output);
+        $file->url = $output;
     }
 
     private static function validateFile($file)
@@ -258,6 +319,36 @@ class UploadController extends Controller
 
     private static function getInfo($file)
     {
+        $mp3Info = self::analyze($file->url);
+        if (!empty($mp3Info['error'])) {
+            Log::info("Error: ", $mp3Info['error']);
+            throw new \Exception('文件已损坏或不是有效的音频');
+        }
+        $info = [
+            'format' => $mp3Info['fileformat'],
+            'bitrate' => $mp3Info['bitrate'],
+            'duration' => intval($mp3Info['playtime_seconds'])
+        ];
+        Log::info('Info:', $info);
+        return $info;
+    }
+
+    // 探测音频信息,无法识别时返回null
+    private static function probeAudio($path)
+    {
+        $info = self::analyze($path);
+        if (!empty($info['error']) || empty($info['fileformat'])) {
+            return null;
+        }
+        return [
+            'format' => $info['fileformat'],
+            'bitrate' => $info['bitrate'] ?? null,
+            'duration' => intval($info['playtime_seconds'] ?? 0)
+        ];
+    }
+
+    private static function analyze($path)
+    {
         $getID3 = new getID3;
         $getID3->setOption([
             'option_tag_id3v1' => false,
@@ -268,19 +359,7 @@ class UploadController extends Controller
             'option_sha1_data' => false,
             'option_max_2gb_check' => false
         ]);
-
-        $mp3Info = $getID3->analyze($file->url);
-        if (!empty($mp3Info['error'])) {
-            Log::info("Error: ", $mp3Info['error']);
-            throw new \Exception('文件非mp3格式或已经损坏,请上传有效的mp3文件');
-        }
-        $info = [
-            'format' => $mp3Info['fileformat'],
-            'bitrate' => $mp3Info['bitrate'],
-            'duration' => intval($mp3Info['playtime_seconds'])
-        ];
-        Log::info('Info:', $info);
-        return $info;
+        return $getID3->analyze($path);
     }
 
     private static function checkDuration($file)

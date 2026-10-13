@@ -79,7 +79,7 @@ RUN set -eux; \
         fi; \
     done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends libgmp-dev; \
+    apt-get install -y --no-install-recommends libgmp-dev ffmpeg; \
     docker-php-ext-install bcmath pdo_mysql gmp; \
     rm -rf /var/lib/apt/lists/*
 
@@ -105,7 +105,7 @@ RUN set -eux; \
         fi; \
     done; \
     apt-get update; \
-    apt-get install -y --no-install-recommends libgmp-dev; \
+    apt-get install -y --no-install-recommends libgmp-dev ffmpeg; \
     docker-php-ext-install bcmath pdo_mysql gmp; \
     rm -rf /var/lib/apt/lists/*
 

@@ -116,7 +116,7 @@ const ManualUpload = () => {
           fileList={fileList}
           action="/api/upload"
           data={getFormData}
-          accept="audio/mpeg"
+          accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.oga,.wma,.aiff"
           beforeUpload={beforeUpload}
           showUploadList={{ showRemoveIcon: false, showDownloadIcon: false }}
           onChange={onChange}
@@ -126,7 +126,8 @@ const ManualUpload = () => {
           </p>
           <p className="ant-upload-text">将文件拖到此处，或点击上传</p>
           <p className="ant-upload-hint">
-            只能上传mp3格式的文件，且文件大小须介于1-20MB之间
+            支持 mp3/m4a/aac/wav/flac/ogg 等音频格式（非 mp3 会自动转换为
+            mp3），文件大小须介于1-20MB之间
           </p>
         </Upload.Dragger>
       </FormItem>
